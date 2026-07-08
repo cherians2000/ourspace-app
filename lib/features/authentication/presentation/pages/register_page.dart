@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../core/utils/validators/email_validator.dart';
+import '../../../../core/utils/validators/password_validator.dart';
 import '../../../../core/utils/validators/required_validator.dart';
 import '../providers/auth_providers.dart';
 import '../providers/auth_state.dart';
@@ -12,33 +13,47 @@ import '../widgets/auth_error_banner.dart';
 import '../widgets/auth_error_message.dart';
 import '../widgets/auth_text_field.dart';
 
-/// Email + password login.
-class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+/// Account creation.
+class RegisterPage extends ConsumerStatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
+  ConsumerState<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
+class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    await ref.read(authNotifierProvider.notifier).signIn(
+    // Note: the name is UI-only for now; it is persisted during Firestore
+    // profile creation in a later task.
+    await ref.read(authNotifierProvider.notifier).signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
+  }
+
+  void _backToLogin() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.login);
+    }
   }
 
   @override
@@ -58,29 +73,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(
-                    Icons.favorite,
-                    color: AppColors.secondary,
-                    size: AppIcons.lg,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'OurSpace',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.title.copyWith(
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    'Welcome back',
+                    'Create your account',
                     style: AppTypography.headline.copyWith(
                       color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Log in to return to your spaces.',
+                    'A private space for the people who matter.',
                     style: AppTypography.bodySmall.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -92,6 +93,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        AuthTextField(
+                          controller: _nameController,
+                          label: 'Name',
+                          hint: 'How should we call you?',
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.name],
+                          validator: (value) => RequiredValidator.validate(
+                            value,
+                            message: 'Please enter your name.',
+                          ),
+                          enabled: !isLoading,
+                        ),
+                        const SizedBox(height: AppSpacing.fieldGap),
                         AuthTextField(
                           controller: _emailController,
                           label: 'Email',
@@ -106,12 +120,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         AuthTextField(
                           controller: _passwordController,
                           label: 'Password',
+                          hint: 'At least ${PasswordValidator.minLength} characters',
+                          obscurable: true,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.newPassword],
+                          validator: PasswordValidator.validate,
+                          enabled: !isLoading,
+                        ),
+                        const SizedBox(height: AppSpacing.fieldGap),
+                        AuthTextField(
+                          controller: _confirmController,
+                          label: 'Confirm password',
                           obscurable: true,
                           textInputAction: TextInputAction.done,
-                          autofillHints: const [AutofillHints.password],
-                          validator: (value) => RequiredValidator.validate(
+                          validator: (value) =>
+                              PasswordValidator.validateConfirmation(
                             value,
-                            message: 'Please enter your password.',
+                            _passwordController.text,
                           ),
                           enabled: !isLoading,
                           onFieldSubmitted: (_) => _submit(),
@@ -119,16 +144,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ],
                     ),
                   ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: isLoading
-                          ? null
-                          : () => context.push(AppRoutes.forgotPassword),
-                      child: const Text('Forgot password?'),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sectionGap),
                   ElevatedButton(
                     onPressed: isLoading ? null : _submit,
                     child: isLoading
@@ -137,7 +153,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             height: AppIcons.sm,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Log in'),
+                        : const Text('Create account'),
                   ),
                   const SizedBox(height: AppSpacing.sectionGap),
                   Wrap(
@@ -145,16 +161,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        'New to OurSpace?',
+                        'Already have an account?',
                         style: AppTypography.bodySmall.copyWith(
                           color: AppColors.textSecondary,
                         ),
                       ),
                       TextButton(
-                        onPressed: isLoading
-                            ? null
-                            : () => context.push(AppRoutes.register),
-                        child: const Text('Create account'),
+                        onPressed: isLoading ? null : _backToLogin,
+                        child: const Text('Log in'),
                       ),
                     ],
                   ),

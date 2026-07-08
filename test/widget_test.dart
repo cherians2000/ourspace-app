@@ -48,7 +48,7 @@ void main() {
     // Complete the route transition to login.
     await tester.pumpAndSettle();
 
-    expect(find.text('Login'), findsOneWidget);
-    expect(find.text('OurSpace'), findsNothing);
+    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('Private spaces for people who matter.'), findsNothing);
   });
 }
