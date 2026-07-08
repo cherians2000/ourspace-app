@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/app_startup.dart';
 import '../../data/datasources/authentication_remote_data_source.dart';
 import '../../data/datasources/firebase_authentication_remote_data_source.dart';
 import '../../data/repositories/authentication_repository_impl.dart';
+import '../../domain/entities/app_user.dart';
 import '../../domain/repositories/authentication_repository.dart';
 import '../../domain/usecases/forgot_password.dart';
 import '../../domain/usecases/get_current_user.dart';
@@ -46,6 +48,20 @@ final forgotPasswordProvider = Provider<ForgotPassword>(
 final getCurrentUserProvider = Provider<GetCurrentUser>(
   (ref) => GetCurrentUser(ref.watch(authenticationRepositoryProvider)),
 );
+
+// Session
+
+/// Single source of truth for the authentication session.
+///
+/// Waits for app startup before touching the auth SDK. This is an
+/// ordering guarantee only — the router's listener initializes this
+/// provider at launch, before Firebase exists; the startup call is
+/// idempotent and shared with the splash flow. No presentation timing
+/// lives here.
+final authStateChangesProvider = StreamProvider<AppUser?>((ref) async* {
+  await ref.watch(appStartupProvider).initialize();
+  yield* ref.watch(authenticationRepositoryProvider).authStateChanges();
+});
 
 // State
 

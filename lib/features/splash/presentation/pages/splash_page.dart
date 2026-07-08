@@ -5,12 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/app_routes.dart';
 import '../../../../core/services/app_startup.dart';
 import '../../../../core/theme/theme.dart';
+import '../../../authentication/presentation/providers/auth_providers.dart';
 
 /// Branded launch screen.
 ///
-/// Runs application startup (Firebase initialization) while showing the
-/// OurSpace identity for at least [_minimumDuration], so the brand moment
-/// never flashes by. Navigates to login when both have completed.
+/// Owns application startup and its own display timing: it initializes,
+/// waits for at least [_minimumDuration] and the first authentication
+/// session value, then yields control with a single handoff navigation.
+/// The destination is decided entirely by the router redirect (which
+/// rewrites the handoff to Home when a session exists).
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
 
@@ -31,24 +34,30 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     _bootstrap();
   }
 
-  /// Runs startup work and the minimum display time in parallel, then
-  /// navigates. Navigation waits for whichever finishes last.
+  /// Runs startup work and the minimum display time in parallel, waits
+  /// for the session to resolve, then hands control to the router.
   Future<void> _bootstrap() async {
     try {
       await Future.wait([
         Future<void>.delayed(_minimumDuration),
         ref.read(appStartupProvider).initialize(),
       ]);
+      await ref.read(authStateChangesProvider.future);
     } catch (_) {
       if (mounted) setState(() => _failed = true);
       return;
     }
     if (!mounted) return;
+    // Handoff, not a destination decision: the router redirect has the
+    // final word and rewrites this to Home when signed in.
     context.go(AppRoutes.login);
   }
 
   void _retry() {
     setState(() => _failed = false);
+    // A failed session provider caches its error; rebuild it so startup
+    // and the session subscription are attempted again.
+    ref.invalidate(authStateChangesProvider);
     _bootstrap();
   }
 
