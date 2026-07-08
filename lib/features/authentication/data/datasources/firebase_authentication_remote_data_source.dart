@@ -1,47 +1,62 @@
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+
 import '../models/user_model.dart';
 import 'authentication_remote_data_source.dart';
 
 /// Firebase-backed [AuthenticationRemoteDataSource].
 ///
-/// Scaffold only: the Firebase Auth SDK is wired in by the authentication
-/// integration task. Until then every method throws [UnimplementedError].
+/// Speaks the raw SDK: [firebase_auth.FirebaseAuthException]s are allowed
+/// to propagate; the repository implementation maps them to domain
+/// `AuthException`s.
 class FirebaseAuthenticationRemoteDataSource
     implements AuthenticationRemoteDataSource {
-  const FirebaseAuthenticationRemoteDataSource();
+  FirebaseAuthenticationRemoteDataSource({firebase_auth.FirebaseAuth? auth})
+      : _auth = auth ?? firebase_auth.FirebaseAuth.instance;
+
+  final firebase_auth.FirebaseAuth _auth;
 
   @override
   Future<UserModel> signIn({
     required String email,
     required String password,
-  }) {
-    throw UnimplementedError('Firebase Auth integration pending');
+  }) async {
+    final credential = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    return UserModel.fromFirebaseUser(credential.user!);
   }
 
   @override
   Future<UserModel> signUp({
     required String email,
     required String password,
-  }) {
-    throw UnimplementedError('Firebase Auth integration pending');
+  }) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    return UserModel.fromFirebaseUser(credential.user!);
   }
 
   @override
-  Future<void> signOut() {
-    throw UnimplementedError('Firebase Auth integration pending');
-  }
+  Future<void> signOut() => _auth.signOut();
 
   @override
   Future<void> forgotPassword({required String email}) {
-    throw UnimplementedError('Firebase Auth integration pending');
+    return _auth.sendPasswordResetEmail(email: email);
   }
 
   @override
-  Future<UserModel?> getCurrentUser() {
-    throw UnimplementedError('Firebase Auth integration pending');
+  Future<UserModel?> getCurrentUser() async {
+    final user = _auth.currentUser;
+    return user == null ? null : UserModel.fromFirebaseUser(user);
   }
 
   @override
   Stream<UserModel?> authStateChanges() {
-    throw UnimplementedError('Firebase Auth integration pending');
+    return _auth.authStateChanges().map(
+          (user) => user == null ? null : UserModel.fromFirebaseUser(user),
+        );
   }
 }

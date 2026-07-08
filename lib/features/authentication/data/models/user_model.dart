@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+
 import '../../domain/entities/app_user.dart';
 
 /// Data-transfer representation of a user.
@@ -19,6 +21,15 @@ class UserModel {
       email: entity.email,
       name: entity.name,
       photoUrl: entity.photoUrl,
+    );
+  }
+
+  factory UserModel.fromFirebaseUser(firebase_auth.User user) {
+    return UserModel(
+      id: user.uid,
+      email: user.email ?? '',
+      name: user.displayName,
+      photoUrl: user.photoURL,
     );
   }
 

@@ -18,7 +18,7 @@ import 'auth_state.dart';
 /// contracts. Everything else depends on interfaces.
 
 final authRemoteDataSourceProvider = Provider<AuthenticationRemoteDataSource>(
-  (ref) => const FirebaseAuthenticationRemoteDataSource(),
+  (ref) => FirebaseAuthenticationRemoteDataSource(),
 );
 
 final authenticationRepositoryProvider = Provider<AuthenticationRepository>(
