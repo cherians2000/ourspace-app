@@ -1,30 +1,37 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:ourspace_app/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('app launches into the splash screen', (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: OurSpaceApp()));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('OurSpace'), findsOneWidget);
+    expect(
+      find.text('Private spaces for people who matter.'),
+      findsOneWidget,
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Drain the pending minimum-duration timer so the test ends cleanly.
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pumpAndSettle();
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('splash navigates to login after the minimum duration',
+      (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: OurSpaceApp()));
+
+    // Let the splash fade-in finish.
+    await tester.pump(const Duration(milliseconds: 600));
+
+    // Advance past the 1-second minimum splash duration.
+    await tester.pump(const Duration(seconds: 1));
+
+    // Complete the route transition to login.
+    await tester.pumpAndSettle();
+
+    expect(find.text('Login'), findsOneWidget);
+    expect(find.text('OurSpace'), findsNothing);
   });
 }
