@@ -12,7 +12,20 @@
           "package_name": "com.ourspace.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1068117026550-e0ujf7dmump8mv0le6j4uruvn1m7jm73.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ourspace.app",
+            "certificate_hash": "5ac0cc54b8fae8602d93a67d0040a587126103f7"
+          }
+        },
+        {
+          "client_id": "1068117026550-74r4eqnj6bnv9rkotcvos2fku0d8u7k7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAk1IjxTNdleqNdoZbbcQkYjGKihK-xE0Q"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1068117026550-74r4eqnj6bnv9rkotcvos2fku0d8u7k7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1068117026550-g2fvg1u5okdoi1n54gs3ioun23k865h8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ourspaceApp"
+              }
+            }
+          ]
         }
       }
     }
