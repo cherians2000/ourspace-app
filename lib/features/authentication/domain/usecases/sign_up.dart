@@ -7,7 +7,16 @@ class SignUp {
 
   final AuthenticationRepository _repository;
 
-  Future<AppUser> call({required String email, required String password}) {
-    return _repository.signUp(email: email, password: password);
+  Future<AppUser> call({
+    required String email,
+    required String password,
+    String? displayName,
+  }) {
+    final name = displayName?.trim();
+    return _repository.signUp(
+      email: email,
+      password: password,
+      displayName: (name == null || name.isEmpty) ? null : name,
+    );
   }
 }

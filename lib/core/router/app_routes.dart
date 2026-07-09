@@ -15,6 +15,12 @@ abstract final class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String forgotPasswordName = 'forgotPassword';
 
+  static const String verifyEmail = '/verify-email';
+  static const String verifyEmailName = 'verifyEmail';
+
   static const String home = '/home';
   static const String homeName = 'home';
+
+  static const String profile = '/profile';
+  static const String profileName = 'profile';
 }

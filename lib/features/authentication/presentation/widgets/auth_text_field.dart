@@ -18,6 +18,7 @@ class AuthTextField extends StatefulWidget {
     this.autofillHints,
     this.obscurable = false,
     this.enabled = true,
+    this.onChanged,
     this.onFieldSubmitted,
   });
 
@@ -30,6 +31,7 @@ class AuthTextField extends StatefulWidget {
   final Iterable<String>? autofillHints;
   final bool obscurable;
   final bool enabled;
+  final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onFieldSubmitted;
 
   @override
@@ -57,6 +59,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
           autofillHints: widget.autofillHints,
           obscureText: widget.obscurable && _obscured,
           enabled: widget.enabled,
+          onChanged: widget.onChanged,
           onFieldSubmitted: widget.onFieldSubmitted,
           decoration: InputDecoration(
             hintText: widget.hint,

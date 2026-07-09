@@ -30,6 +30,22 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   bool _emailSent = false;
 
   @override
+  void initState() {
+    super.initState();
+    // A failure from another auth page must not greet the user here.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(authNotifierProvider.notifier).clearError(),
+    );
+  }
+
+  /// Editing the field dismisses the current error banner.
+  void _clearError(String _) {
+    if (ref.read(authNotifierProvider).status == AuthStatus.failure) {
+      ref.read(authNotifierProvider.notifier).clearError();
+    }
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     super.dispose();
@@ -114,6 +130,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             autofillHints: const [AutofillHints.email],
             validator: EmailValidator.validate,
             enabled: !isLoading,
+            onChanged: _clearError,
             onFieldSubmitted: (_) => _submit(),
           ),
         ),

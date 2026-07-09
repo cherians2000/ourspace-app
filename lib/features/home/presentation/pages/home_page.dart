@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_routes.dart';
 import '../../../../core/theme/theme.dart';
-import '../../../authentication/presentation/providers/auth_providers.dart';
-import '../../../authentication/presentation/providers/auth_state.dart';
+import '../../../profile/presentation/providers/profile_providers.dart';
+import '../../../profile/presentation/widgets/profile_avatar.dart';
 
 /// Placeholder home screen.
 ///
@@ -14,10 +16,26 @@ class HomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final isLoading =
-        ref.watch(authNotifierProvider).status == AuthStatus.loading;
+    final profile = ref.watch(userProfileProvider).value;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('OurSpace'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: IconButton(
+              onPressed: () => context.push(AppRoutes.profile),
+              tooltip: 'Your profile',
+              icon: ProfileAvatar(
+                photoUrl: profile?.photoUrl,
+                displayName: profile?.displayName ?? profile?.email,
+                radius: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -29,16 +47,6 @@ class HomePage extends ConsumerWidget {
               style: textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
               ),
-            ),
-            const SizedBox(height: AppSpacing.sectionGap),
-            // TEMPORARY(auth-testing): sign-out button to exercise the
-            // session-driven redirect. Remove when the real Home UI lands.
-            OutlinedButton.icon(
-              onPressed: isLoading
-                  ? null
-                  : () => ref.read(authNotifierProvider.notifier).signOut(),
-              icon: const Icon(Icons.logout, size: AppIcons.sm),
-              label: const Text('Sign out'),
             ),
           ],
         ),

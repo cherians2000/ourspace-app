@@ -8,6 +8,14 @@ import 'package:ourspace_app/features/authentication/presentation/providers/auth
 import 'package:ourspace_app/features/splash/presentation/pages/splash_page.dart';
 import 'package:ourspace_app/main.dart';
 
+/// Must cover `SplashPage._minimumDuration` (currently 2 seconds).
+///
+/// The production constant is deliberately private, so this mirrors it
+/// with headroom instead of importing it. If the splash duration is ever
+/// raised above this value, tests will fail with a pending-timer error —
+/// update this constant to match.
+const Duration _splashDrainDuration = Duration(seconds: 3);
+
 /// No-op startup so widget tests never touch real Firebase.
 class _FakeAppStartup extends AppStartup {
   @override
@@ -25,6 +33,13 @@ Widget _buildApp() {
   );
 }
 
+/// Advances past the splash minimum duration and settles the handoff
+/// navigation, leaving no pending timers behind.
+Future<void> _drainSplash(WidgetTester tester) async {
+  await tester.pump(_splashDrainDuration);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   testWidgets('app launches into the splash screen', (tester) async {
     await tester.pumpWidget(_buildApp());
@@ -35,22 +50,20 @@ void main() {
       findsOneWidget,
     );
 
-    // Drain the splash minimum-duration timer and settle the handoff
-    // navigation so the test ends cleanly.
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pumpAndSettle();
+    await _drainSplash(tester);
   });
 
   testWidgets('splash navigates to login after the minimum duration',
       (tester) async {
     await tester.pumpWidget(_buildApp());
 
-    // Let the splash fade-in finish, advance past the 1-second minimum
-    // splash duration (the session override emits immediately), then
-    // settle the handoff navigation and redirect to login.
+    // Before the minimum duration elapses, the app must still be on the
+    // splash — this guards the brand moment against regressions.
     await tester.pump(const Duration(milliseconds: 600));
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pumpAndSettle();
+    expect(find.byType(SplashPage), findsOneWidget);
+    expect(find.byType(LoginPage), findsNothing);
+
+    await _drainSplash(tester);
 
     // Assert on page types, not display copy: marketing text may change,
     // the page classes are stable.

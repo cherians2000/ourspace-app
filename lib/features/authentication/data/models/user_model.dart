@@ -6,13 +6,14 @@ import '../../domain/entities/app_user.dart';
 ///
 /// Deliberately independent from [AppUser]; the layers exchange users
 /// exclusively through [toEntity] and [fromEntity]. SDK mappings (e.g.
-/// `fromFirebaseUser`) are added here, never on the entity.
+/// [fromFirebaseUser]) are added here, never on the entity.
 class UserModel {
   const UserModel({
     required this.id,
     required this.email,
     this.name,
     this.photoUrl,
+    this.emailVerified = false,
   });
 
   factory UserModel.fromEntity(AppUser entity) {
@@ -21,6 +22,7 @@ class UserModel {
       email: entity.email,
       name: entity.name,
       photoUrl: entity.photoUrl,
+      emailVerified: entity.emailVerified,
     );
   }
 
@@ -30,6 +32,7 @@ class UserModel {
       email: user.email ?? '',
       name: user.displayName,
       photoUrl: user.photoURL,
+      emailVerified: user.emailVerified,
     );
   }
 
@@ -37,8 +40,15 @@ class UserModel {
   final String email;
   final String? name;
   final String? photoUrl;
+  final bool emailVerified;
 
   AppUser toEntity() {
-    return AppUser(id: id, email: email, name: name, photoUrl: photoUrl);
+    return AppUser(
+      id: id,
+      email: email,
+      name: name,
+      photoUrl: photoUrl,
+      emailVerified: emailVerified,
+    );
   }
 }

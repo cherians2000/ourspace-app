@@ -4,6 +4,21 @@ enum AuthErrorReason {
   emailAlreadyInUse,
   weakPassword,
   network,
+
+  /// The user dismissed a provider sign-in flow (e.g. the Google account
+  /// picker). Not an error condition; presentation handles it silently.
+  cancelled,
+
+  /// Firebase rate limiting (e.g. requesting verification emails in
+  /// quick succession).
+  tooManyRequests,
+
+  /// The current session is gone or no longer valid.
+  sessionExpired,
+
+  /// The operation is security-sensitive and Firebase requires a recent
+  /// login (e.g. account deletion long after signing in).
+  requiresRecentLogin,
   unknown,
 }
 

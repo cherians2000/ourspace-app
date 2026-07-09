@@ -8,9 +8,27 @@ import '../models/user_model.dart';
 abstract interface class AuthenticationRemoteDataSource {
   Future<UserModel> signIn({required String email, required String password});
 
-  Future<UserModel> signUp({required String email, required String password});
+  /// Creates the account, sets the display name when provided, and sends
+  /// a verification email immediately.
+  Future<UserModel> signUp({
+    required String email,
+    required String password,
+    String? displayName,
+  });
+
+  Future<UserModel> signInWithGoogle();
+
+  Future<void> sendEmailVerification();
+
+  Future<UserModel?> reloadCurrentUser();
 
   Future<void> signOut();
+
+  Future<void> deleteAccount();
+
+  Future<bool> needsRecentLogin();
+
+  Future<void> reauthenticate({String? password});
 
   Future<void> forgotPassword({required String email});
 

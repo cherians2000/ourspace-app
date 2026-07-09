@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +9,7 @@ import '../../../../core/router/app_routes.dart';
 import '../../../../core/services/app_startup.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../authentication/presentation/providers/auth_providers.dart';
+import '../../../profile/presentation/providers/profile_providers.dart';
 
 /// Branded launch screen.
 ///
@@ -24,7 +28,7 @@ class SplashPage extends ConsumerStatefulWidget {
 class _SplashPageState extends ConsumerState<SplashPage> {
   /// The splash stays visible at least this long, even if startup finishes
   /// sooner.
-  static const Duration _minimumDuration = Duration(seconds: 1);
+  static const Duration _minimumDuration = Duration(seconds: 2);
 
   bool _failed = false;
 
@@ -42,7 +46,24 @@ class _SplashPageState extends ConsumerState<SplashPage> {
         Future<void>.delayed(_minimumDuration),
         ref.read(appStartupProvider).initialize(),
       ]);
-      await ref.read(authStateChangesProvider.future);
+      final session = await ref.read(authStateChangesProvider.future);
+      if (session != null) {
+        // A restored session is a session establishment: refresh the
+        // canonical profile. Fire-and-forget — profile sync must never
+        // block or fail app startup.
+        unawaited(() async {
+          try {
+            await ref.read(ensureUserProfileProvider)(session);
+          } catch (e, stackTrace) {
+            developer.log(
+              'Profile sync failed for ${session.id}',
+              name: 'SplashPage',
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
+        }());
+      }
     } catch (_) {
       if (mounted) setState(() => _failed = true);
       return;

@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../firebase_options.dart';
+import '../constants/supabase_config.dart';
 
 /// Performs one-time application startup work.
 ///
@@ -14,6 +16,10 @@ class AppStartup {
   /// In-flight or completed startup work. Ensures [initialize] is
   /// idempotent: concurrent and repeated calls share a single run.
   Future<void>? _initialization;
+
+  /// Guards against double Supabase initialization on retry after a
+  /// failure in a later startup step.
+  bool _supabaseReady = false;
 
   Future<void> initialize() {
     return _initialization ??= _runStartup();
@@ -28,7 +34,16 @@ class AppStartup {
           options: DefaultFirebaseOptions.currentPlatform,
         );
       }
-      // Future startup steps are awaited here, after Firebase core.
+      // Supabase is used for profile photo storage only; identity and
+      // application data stay on Firebase.
+      if (!_supabaseReady) {
+        await Supabase.initialize(
+          url: SupabaseConfig.url,
+          publishableKey: SupabaseConfig.publishableKey,
+        );
+        _supabaseReady = true;
+      }
+      // Future startup steps are awaited here.
     } catch (_) {
       // Clear the cached run so a retry can attempt startup again.
       _initialization = null;

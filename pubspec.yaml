@@ -44,7 +44,12 @@ dependencies:
   firebase_auth: ^6.5.1
   cloud_firestore: ^6.4.1
   firebase_database: ^12.4.1
-  firebase_storage: ^13.4.2
+
+  # Authentication providers
+  google_sign_in: ^7.2.0
+
+  # Supabase (profile photo storage only)
+  supabase_flutter: ^2.14.2
 
   # UI
   image_picker: ^1.2.2

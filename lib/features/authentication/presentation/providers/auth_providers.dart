@@ -8,7 +8,10 @@ import '../../domain/entities/app_user.dart';
 import '../../domain/repositories/authentication_repository.dart';
 import '../../domain/usecases/forgot_password.dart';
 import '../../domain/usecases/get_current_user.dart';
+import '../../domain/usecases/reload_current_user.dart';
+import '../../domain/usecases/send_email_verification.dart';
 import '../../domain/usecases/sign_in.dart';
+import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/sign_out.dart';
 import '../../domain/usecases/sign_up.dart';
 import 'auth_notifier.dart';
@@ -47,6 +50,18 @@ final forgotPasswordProvider = Provider<ForgotPassword>(
 
 final getCurrentUserProvider = Provider<GetCurrentUser>(
   (ref) => GetCurrentUser(ref.watch(authenticationRepositoryProvider)),
+);
+
+final signInWithGoogleProvider = Provider<SignInWithGoogle>(
+  (ref) => SignInWithGoogle(ref.watch(authenticationRepositoryProvider)),
+);
+
+final sendEmailVerificationProvider = Provider<SendEmailVerification>(
+  (ref) => SendEmailVerification(ref.watch(authenticationRepositoryProvider)),
+);
+
+final reloadCurrentUserProvider = Provider<ReloadCurrentUser>(
+  (ref) => ReloadCurrentUser(ref.watch(authenticationRepositoryProvider)),
 );
 
 // Session

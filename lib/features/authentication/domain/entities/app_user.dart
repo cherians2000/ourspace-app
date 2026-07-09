@@ -13,6 +13,7 @@ class AppUser extends Equatable {
     required this.email,
     this.name,
     this.photoUrl,
+    this.emailVerified = false,
   });
 
   final String id;
@@ -20,6 +21,11 @@ class AppUser extends Equatable {
   final String? name;
   final String? photoUrl;
 
+  /// Whether the user's email address is verified. Google accounts arrive
+  /// verified; email/password accounts must confirm via the sent link.
+  /// The router gates Home on this.
+  final bool emailVerified;
+
   @override
-  List<Object?> get props => [id, email, name, photoUrl];
+  List<Object?> get props => [id, email, name, photoUrl, emailVerified];
 }

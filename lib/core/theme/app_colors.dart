@@ -30,4 +30,8 @@ abstract final class AppColors {
   // Semantic
   static const Color error = Color(0xFFDC2626);
   static const Color success = Color(0xFF22C55E);
+
+  // Overlays
+  /// Immersive-media background (full-screen image/video viewers).
+  static const Color mediaBackground = Color(0xFF000000);
 }

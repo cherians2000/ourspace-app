@@ -26,6 +26,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // A failure from another auth page must not greet the user here.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(authNotifierProvider.notifier).clearError(),
+    );
+  }
+
+  /// Editing any field dismisses the current error banner.
+  void _clearError(String _) {
+    if (ref.read(authNotifierProvider).status == AuthStatus.failure) {
+      ref.read(authNotifierProvider.notifier).clearError();
+    }
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
@@ -101,6 +117,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           autofillHints: const [AutofillHints.email],
                           validator: EmailValidator.validate,
                           enabled: !isLoading,
+                          onChanged: _clearError,
                         ),
                         const SizedBox(height: AppSpacing.fieldGap),
                         AuthTextField(
@@ -114,6 +131,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             message: 'Please enter your password.',
                           ),
                           enabled: !isLoading,
+                          onChanged: _clearError,
                           onFieldSubmitted: (_) => _submit(),
                         ),
                       ],
@@ -138,6 +156,33 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Text('Log in'),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                        ),
+                        child: Text(
+                          'or',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      const Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  OutlinedButton(
+                    onPressed: isLoading
+                        ? null
+                        : () => ref
+                            .read(authNotifierProvider.notifier)
+                            .signInWithGoogle(),
+                    child: const Text('Continue with Google'),
                   ),
                   const SizedBox(height: AppSpacing.sectionGap),
                   Wrap(

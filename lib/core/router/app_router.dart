@@ -6,8 +6,10 @@ import '../../features/authentication/domain/entities/app_user.dart';
 import '../../features/authentication/presentation/pages/forgot_password_page.dart';
 import '../../features/authentication/presentation/pages/login_page.dart';
 import '../../features/authentication/presentation/pages/register_page.dart';
+import '../../features/authentication/presentation/pages/verify_email_page.dart';
 import '../../features/authentication/presentation/providers/auth_providers.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import 'app_routes.dart';
 
@@ -59,7 +61,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location == AppRoutes.register ||
           location == AppRoutes.forgotPassword;
 
-      if (signedIn) return onAuthPages ? AppRoutes.home : null;
+      final onVerifyPage = location == AppRoutes.verifyEmail;
+
+      if (signedIn) {
+        // Email/password users must verify before reaching Home. Google
+        // accounts arrive already verified, so this rule never traps them.
+        final verified = auth.value!.emailVerified;
+        if (!verified) return onVerifyPage ? null : AppRoutes.verifyEmail;
+        return onAuthPages || onVerifyPage ? AppRoutes.home : null;
+      }
       return onAuthPages ? null : AppRoutes.login;
     },
     routes: [
@@ -84,9 +94,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordPage(),
       ),
       GoRoute(
+        path: AppRoutes.verifyEmail,
+        name: AppRoutes.verifyEmailName,
+        builder: (context, state) => const VerifyEmailPage(),
+      ),
+      GoRoute(
         path: AppRoutes.home,
         name: AppRoutes.homeName,
         builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: AppRoutes.profile,
+        name: AppRoutes.profileName,
+        builder: (context, state) => const ProfilePage(),
       ),
     ],
   );

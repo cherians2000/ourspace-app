@@ -29,6 +29,22 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _confirmController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // A failure from another auth page must not greet the user here.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(authNotifierProvider.notifier).clearError(),
+    );
+  }
+
+  /// Editing any field dismisses the current error banner.
+  void _clearError(String _) {
+    if (ref.read(authNotifierProvider).status == AuthStatus.failure) {
+      ref.read(authNotifierProvider.notifier).clearError();
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
@@ -40,11 +56,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Future<void> _submit() async {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    // Note: the name is UI-only for now; it is persisted during Firestore
-    // profile creation in a later task.
     await ref.read(authNotifierProvider.notifier).signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text,
+          displayName: _nameController.text.trim(),
         );
   }
 
@@ -104,6 +119,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                             message: 'Please enter your name.',
                           ),
                           enabled: !isLoading,
+                          onChanged: _clearError,
                         ),
                         const SizedBox(height: AppSpacing.fieldGap),
                         AuthTextField(
@@ -115,6 +131,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           autofillHints: const [AutofillHints.email],
                           validator: EmailValidator.validate,
                           enabled: !isLoading,
+                          onChanged: _clearError,
                         ),
                         const SizedBox(height: AppSpacing.fieldGap),
                         AuthTextField(
@@ -126,6 +143,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           autofillHints: const [AutofillHints.newPassword],
                           validator: PasswordValidator.validate,
                           enabled: !isLoading,
+                          onChanged: _clearError,
                         ),
                         const SizedBox(height: AppSpacing.fieldGap),
                         AuthTextField(
@@ -139,6 +157,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                             _passwordController.text,
                           ),
                           enabled: !isLoading,
+                          onChanged: _clearError,
                           onFieldSubmitted: (_) => _submit(),
                         ),
                       ],
